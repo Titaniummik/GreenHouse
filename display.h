@@ -1,5 +1,6 @@
 #include "mbed.h" //Mbed OS 6
 #include <string>
+#include <sstream>
 #include "lvgl/lvgl.h"
 #include "LCD_DISCO_F746NG.h"
 #include "TS_DISCO_F746NG.h"
@@ -12,6 +13,7 @@ public:
     void display_init(void);
     void touchpad_init(void);
     int main_menu();
+    void overview(float celcius, float fahrenheit, float humidity, float light_level);
     void water_settings();
     void light_settings();
     void heat_settings();

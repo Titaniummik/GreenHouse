@@ -3,7 +3,9 @@ using namespace std;
 
 static lv_obj_t * slider_label1;
 static lv_obj_t * slider_label2;
+const char * celcius;
 TS_StateTypeDef TS_State;
+
 
 void display::slider_event_cb_1(lv_obj_t * slider, lv_event_t event)
 {
@@ -54,9 +56,14 @@ int display::main_menu(){
     lv_obj_add_style(btn3, LV_BTN_PART_MAIN, &style_halo);
     lv_obj_set_style_local_value_str(btn3, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, "Water Setting");
 
-    lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);
-    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_CLOSE);
-    lv_obj_set_size(btn, 50, 50); //set the button size
+    lv_obj_t * btn4 = lv_btn_create(lv_scr_act(), NULL);
+    lv_obj_set_style_local_value_str(btn4, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_CLOSE);
+    lv_obj_set_size(btn4, 50, 50); //set the button size
+
+    lv_obj_t * btn5 = lv_btn_create(lv_scr_act(), NULL);
+    lv_obj_align(btn5, NULL, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
+    lv_obj_set_style_local_value_str(btn5, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_SETTINGS);
+    lv_obj_set_size(btn5, 50, 50); //set the button size
 
 
     while(true){   
@@ -72,8 +79,45 @@ int display::main_menu(){
             lv_obj_clean(lv_scr_act());
             return 3;
         }
+        else if (lv_btn_get_state(btn3) == LV_BTN_STATE_PRESSED) {
+            lv_obj_clean(lv_scr_act());
+            return -1;
+        }
     }
 }
+
+
+void display::overview(float celcius, float fahrenheit, float humidity, float light_level){
+
+    lv_obj_t * table = lv_table_create(lv_scr_act(), NULL);
+    lv_table_set_col_cnt(table, 2);
+    lv_table_set_row_cnt(table, 3);
+    lv_obj_align(table, NULL, LV_ALIGN_CENTER, 0, 0);
+
+
+    /*Align the price values to the right in the 2nd column*/
+    lv_table_set_cell_align(table, 0, 1, LV_LABEL_ALIGN_RIGHT);
+    lv_table_set_cell_align(table, 1, 1, LV_LABEL_ALIGN_RIGHT);
+    lv_table_set_cell_align(table, 2, 1, LV_LABEL_ALIGN_RIGHT);
+
+    lv_table_set_cell_type(table, 0, 0, 2);
+    lv_table_set_cell_type(table, 0, 1, 2);
+
+
+    /*Fill the first column*/
+    lv_table_set_cell_value(table, 0, 0, "°C");
+    lv_table_set_cell_value(table, 1, 0, "°F");
+    lv_table_set_cell_value(table, 2, 0, "Humidity");
+
+    /*Fill the second column*/
+    lv_table_set_cell_value(table, 0, 1, "22");
+    lv_table_set_cell_value(table, 1, 1, "123");
+    lv_table_set_cell_value(table, 2, 1, "44");
+
+}
+
+
+
 
 void display::water_settings(){
     /*Create a slider*/
@@ -107,7 +151,7 @@ void display::water_settings(){
     lv_obj_align(info2, NULL, LV_ALIGN_CENTER, 0, 60);
 
     lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);
-    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_CLOSE);
+    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_BACKSPACE);
     lv_obj_set_size(btn, 50, 50); //set the button size
 
 

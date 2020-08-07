@@ -145,13 +145,9 @@ int main() {
         case 3:
             disp.water_settings();
             goto menu;
-        case 4:
+        case -1:
             break;
     }
-
-    //lv_ex_win_1();
-
-    while(true);
 }
 
 void lv_ticker_func(){
