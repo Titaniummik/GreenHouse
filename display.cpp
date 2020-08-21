@@ -3,9 +3,8 @@ using namespace std;
 
 static lv_obj_t * slider_label1;
 static lv_obj_t * slider_label2;
-const char * celcius;
-TS_StateTypeDef TS_State;
 
+TS_StateTypeDef TS_State;
 
 void display::slider_event_cb_1(lv_obj_t * slider, lv_event_t event)
 {
@@ -61,8 +60,8 @@ int display::main_menu(){
     lv_obj_set_size(btn4, 50, 50); //set the button size
 
     lv_obj_t * btn5 = lv_btn_create(lv_scr_act(), NULL);
-    lv_obj_align(btn5, NULL, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
-    lv_obj_set_style_local_value_str(btn5, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_SETTINGS);
+    lv_obj_align(btn5, NULL, LV_ALIGN_IN_TOP_RIGHT, 80, 0);
+    lv_obj_set_style_local_value_str(btn5, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_LIST);
     lv_obj_set_size(btn5, 50, 50); //set the button size
 
 
@@ -79,15 +78,45 @@ int display::main_menu(){
             lv_obj_clean(lv_scr_act());
             return 3;
         }
-        else if (lv_btn_get_state(btn3) == LV_BTN_STATE_PRESSED) {
+        else if (lv_btn_get_state(btn5) == LV_BTN_STATE_PRESSED) {
+            lv_obj_clean(lv_scr_act());
+            return 4;
+        }
+        else if (lv_btn_get_state(btn4) == LV_BTN_STATE_PRESSED) {
             lv_obj_clean(lv_scr_act());
             return -1;
         }
     }
 }
 
+void display::overview(float celcius, float humidity){
 
-void display::overview(float celcius, float fahrenheit, float humidity, float light_level){
+
+    float fahrenheit = celcius * 1.8 + 32;
+
+    int int_celcius = static_cast<int>(celcius);
+    int int_fahrenheit = static_cast<int>(fahrenheit);
+    int int_humidity = static_cast<int>(humidity);
+
+    printf("----Celcuis before strcpy: %d\n", int_celcius);
+    printf("----Fahrenheit before strcpy: %d\n", int_fahrenheit);
+    printf("----Humidity before strcpy: %d\n", int_humidity);
+
+    string str_celcius = to_string(int_celcius);
+    string str_fahrenheit = to_string(int_fahrenheit);
+    string str_humidity = to_string(int_humidity);
+
+    char arr_celcius[2];
+    char arr_fahrenheit[4];
+    char arr_humidity[6];
+
+    strcpy(arr_celcius, str_celcius.c_str());   
+    strcpy(arr_fahrenheit, str_fahrenheit.c_str());
+    strcpy(arr_humidity, str_humidity.c_str());
+
+    printf("----Celcuis after strcpy: %s\n", arr_celcius);
+    printf("----Fahrenheit after strcpy: %s\n", arr_fahrenheit);
+    printf("----Humidity after strcpy: %s\n", arr_humidity);
 
     lv_obj_t * table = lv_table_create(lv_scr_act(), NULL);
     lv_table_set_col_cnt(table, 2);
@@ -103,20 +132,28 @@ void display::overview(float celcius, float fahrenheit, float humidity, float li
     lv_table_set_cell_type(table, 0, 0, 2);
     lv_table_set_cell_type(table, 0, 1, 2);
 
-
     /*Fill the first column*/
     lv_table_set_cell_value(table, 0, 0, "°C");
     lv_table_set_cell_value(table, 1, 0, "°F");
     lv_table_set_cell_value(table, 2, 0, "Humidity");
 
     /*Fill the second column*/
-    lv_table_set_cell_value(table, 0, 1, "22");
-    lv_table_set_cell_value(table, 1, 1, "123");
-    lv_table_set_cell_value(table, 2, 1, "44");
+    lv_table_set_cell_value(table, 0, 1, arr_celcius);
+    lv_table_set_cell_value(table, 1, 1, arr_fahrenheit);
+    lv_table_set_cell_value(table, 2, 1, arr_humidity);
+
+    lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);
+    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_BACKSPACE);
+    lv_obj_set_size(btn, 50, 50); //set the button size
+
+    while(true){
+        if (lv_btn_get_state(btn) == LV_BTN_STATE_PRESSED) {
+            lv_obj_clean(lv_scr_act());
+            break;
+        }
+    }
 
 }
-
-
 
 
 void display::water_settings(){
@@ -155,6 +192,8 @@ void display::water_settings(){
     lv_obj_set_size(btn, 50, 50); //set the button size
 
 
+    
+
     while(true){
         if (lv_btn_get_state(btn) == LV_BTN_STATE_PRESSED) {
             lv_obj_clean(lv_scr_act());
@@ -163,7 +202,17 @@ void display::water_settings(){
     }
 }
 
-void display::light_settings(){
+void display::light_settings(double curr_hours, double* hours){
+
+    curr_hours = curr_hours/3600000;
+
+    string str = to_string(curr_hours);
+
+    char arr_hours[2];
+
+    strcpy(arr_hours, str.c_str());
+
+
     /*Create a slider*/
     lv_obj_t * slider1 = lv_slider_create(lv_scr_act(), NULL);
     lv_obj_set_event_cb(slider1, slider_event_cb_1);
@@ -186,7 +235,7 @@ void display::light_settings(){
     lv_slider_set_range(slider2, 0, 24);
 
     slider_label2 = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_text(slider_label2, "12");
+    lv_label_set_text(slider_label2, arr_hours);
     lv_obj_set_auto_realign(slider_label2, true);
     lv_obj_align(slider_label2, slider2, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
@@ -195,12 +244,16 @@ void display::light_settings(){
     lv_obj_align(info2, NULL, LV_ALIGN_CENTER, 0, 60);
 
     lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);
-    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_CLOSE);
+    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_BACKSPACE);
     lv_obj_set_size(btn, 50, 50); //set the button size
 
 
     while(true){
         if (lv_btn_get_state(btn) == LV_BTN_STATE_PRESSED) {
+
+            int ihours = lv_slider_get_value(slider2);
+            *hours = ihours * 3600000;
+
             lv_obj_clean(lv_scr_act());
             break;
         }
@@ -208,44 +261,61 @@ void display::light_settings(){
 
 }
 
-void display::heat_settings(){
+void display::heat_settings(float curr_celcius, float curr_humidity, float* celcius, float* humidity){
+    
+    string celcius_str = to_string((int)curr_celcius);
+    string humidity_str = to_string((int)curr_humidity);
+
+    char arr_celcius[2];
+    char arr_humidity[4];
+
+    strcpy(arr_celcius, celcius_str.c_str());
+    strcpy(arr_humidity, humidity_str.c_str());
+
+    ThisThread::sleep_for(300);
+
+
     /*Create a slider*/
-    lv_obj_t * slider1 = lv_slider_create(lv_scr_act(), NULL);
-    lv_obj_set_event_cb(slider1, slider_event_cb_1);
-    lv_obj_align(slider1, NULL, LV_ALIGN_CENTER, 0, -80);
-    lv_slider_set_range(slider1, 0, 40);
+    lv_obj_t * slider_heat = lv_slider_create(lv_scr_act(), NULL);
+    lv_obj_set_event_cb(slider_heat, slider_event_cb_1);
+    lv_obj_align(slider_heat, NULL, LV_ALIGN_CENTER, 0, -80);
+    lv_slider_set_range(slider_heat, 0, 40);
 
     slider_label1 = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_text(slider_label1, "25");
+    lv_label_set_text(slider_label1, arr_celcius);
     lv_obj_set_auto_realign(slider_label1, true);
-    lv_obj_align(slider_label1, slider1, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+    lv_obj_align(slider_label1, slider_heat, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
     lv_obj_t * info = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_text(info, "Mininum Heat in Celcius");
     lv_obj_align(info, NULL, LV_ALIGN_CENTER, 0, -100);
 
 
-    lv_obj_t * slider2 = lv_slider_create(lv_scr_act(), NULL);
-    lv_obj_set_event_cb(slider2, slider_event_cb_2);
-    lv_obj_align(slider2, NULL, LV_ALIGN_CENTER, 0, 80);
-    lv_slider_set_range(slider2, 0, 100);
+    lv_obj_t * slider_humidity = lv_slider_create(lv_scr_act(), NULL);
+    lv_obj_set_event_cb(slider_humidity, slider_event_cb_2);
+    lv_obj_align(slider_humidity, NULL, LV_ALIGN_CENTER, 0, 80);
+    lv_slider_set_range(slider_humidity, 0, 100);
 
     slider_label2 = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_text(slider_label2, "15");
+    lv_label_set_text(slider_label2, arr_humidity);
     lv_obj_set_auto_realign(slider_label2, true);
-    lv_obj_align(slider_label2, slider2, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+    lv_obj_align(slider_label2, slider_humidity, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
     lv_obj_t * info2 = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_text(info2, "Humidity in procent");
     lv_obj_align(info2, NULL, LV_ALIGN_CENTER, 0, 60);
 
     lv_obj_t * btn = lv_btn_create(lv_scr_act(), NULL);
-    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_CLOSE);
+    lv_obj_set_style_local_value_str(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_BACKSPACE);
     lv_obj_set_size(btn, 50, 50); //set the button size
 
 
     while(true){
         if (lv_btn_get_state(btn) == LV_BTN_STATE_PRESSED) {
+
+            *celcius = lv_slider_get_value(slider_heat);
+            *humidity = lv_slider_get_value(slider_humidity);
+
             lv_obj_clean(lv_scr_act());
             break;
         }
@@ -253,33 +323,7 @@ void display::heat_settings(){
 
 }
 
-void display::add_table(){
 
-    lv_obj_t * table = lv_table_create(lv_scr_act(), NULL);
-    lv_table_set_col_cnt(table, 2);
-    lv_table_set_row_cnt(table, 3);
-    lv_obj_align(table, NULL, LV_ALIGN_CENTER, 0, 0);
-
-
-    /*Align the price values to the right in the 2nd column*/
-    lv_table_set_cell_align(table, 0, 1, LV_LABEL_ALIGN_RIGHT);
-    lv_table_set_cell_align(table, 1, 1, LV_LABEL_ALIGN_RIGHT);
-    lv_table_set_cell_align(table, 2, 1, LV_LABEL_ALIGN_RIGHT);
-
-    lv_table_set_cell_type(table, 0, 0, 2);
-    lv_table_set_cell_type(table, 0, 1, 2);
-
-    /*Fill the first column*/
-    lv_table_set_cell_value(table, 0, 0, "°C");
-    lv_table_set_cell_value(table, 1, 0, "°F");
-    lv_table_set_cell_value(table, 2, 0, "Humidity");
-
-    /*Fill the second column*/
-    lv_table_set_cell_value(table, 0, 1, "22");
-    lv_table_set_cell_value(table, 1, 1, "123");
-    lv_table_set_cell_value(table, 2, 1, "44");
-}
- 
 void display::my_disp_flush_cb(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p)
 {
     //The most simple case (but also the slowest) to put all pixels to the screen one-by-one

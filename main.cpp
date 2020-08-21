@@ -3,22 +3,33 @@
 #include "display.h"
 #include "lvgl/lvgl.h"
 #include "lv_examples-master/lv_examples.h"
-#include <ctime>
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #define TICKER_TIME 0.001 * LVGL_TICK  
 #define LVGL_TICK 5                             //Time tick value for lvgl in ms (1-10msa)
 
 DHT s_temp_humi(A0,SEN51035P); // Use the SEN11301P sensor
 AnalogIn s_light(A1);
 DigitalOut led1(D4);
+display disp;
 Thread thread;
 Thread thread2;
 Thread thread3;
 Ticker ticker;
 
+
+
 void lv_ticker_func();
 
-bool production = true;
+bool production = false;
+double light_a_day = 43200000; //12 hours
+float max_heat_c = 25;
+float max_humi = 10;
 bool windows_open;
+
+float temp_farenheit, temp_celcius, humidity;
 
 void water_plants()
 {
@@ -30,7 +41,13 @@ void water_plants()
         ThisThread::sleep_for(inverval_ms);
         printf("--Starting watering plants\n");
         //start_water();
-        ThisThread::sleep_for(water_time);
+        if(production){
+            ThisThread::sleep_for(water_time);
+        }
+        else{
+            ThisThread::sleep_for(60000);
+        }
+        
         printf("--End watering plants\n");
         //end_water();
     }
@@ -39,8 +56,6 @@ void water_plants()
 
 void check_light()
 {
-    double light_a_day = 43200000; //12 hours
-    float light_val;
     float min_light = 0.5;
     bool light_on = false;
 
@@ -51,10 +66,10 @@ void check_light()
         start = clock();
         duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
         while(duration < (light_a_day / 100)){
-            light_val = s_light.read();
-            if(light_val < min_light){
+            disp.light_val = s_light.read();
+            if(disp.light_val < min_light){
                 duration = ( clock() - start ) / (double) CLOCKS_PER_SEC;
-                printf("Too dark: %f\n", light_val);
+                printf("Too dark: %f\n", disp.light_val);
                 printf("--Turning on light\n");
                 led1 = 1;
                 //lightplantson();
@@ -74,7 +89,13 @@ void check_light()
             //lightplantsoff();
             light_on = false;
         }
-        ThisThread::sleep_for(86400000 - light_a_day); //Sleep for the rest of the day
+        if (production){
+            ThisThread::sleep_for(86400000 - light_a_day); //Sleep for the rest of the day
+        }
+        else{
+            ThisThread::sleep_for(60000); //Sleep for a min
+        }
+        
     }
 }
 
@@ -82,8 +103,6 @@ void check_light()
 void check_heathumi()
 {
     int err;
-    float temp_farenheit, temp_celcius, humidity;
-    float max_heat_c = 25;
 
     while(true){
         err = s_temp_humi.readData();
@@ -93,11 +112,18 @@ void check_heathumi()
             temp_farenheit = s_temp_humi.ReadTemperature(FARENHEIT);
             humidity = s_temp_humi.ReadHumidity();
 
-            if (temp_celcius > max_heat_c){
-                printf("Mans too hot: %4.2f C \r\n", temp_celcius);
+            if (temp_celcius > max_heat_c or humidity > max_humi){
+                printf("Heat in Celcius: %f \n", temp_celcius);
+                printf("Humidity in Procent: %f \n", humidity);
                 printf("--Opening windows\n");
                 //openwindows();
-                ThisThread::sleep_for(300000); //5 min
+                if (production) {
+                    ThisThread::sleep_for(300000); //5 min
+                }
+                else{
+                    ThisThread::sleep_for(20000); //20 sec
+                }
+                
             }
             else{
                 printf("--Closing windows\n");
@@ -113,37 +139,39 @@ void check_heathumi()
 
 int main() {
 
-    display disp;
-
     disp.display_init();
     disp.touchpad_init();
 
     ticker.attach(callback(&lv_ticker_func),TICKER_TIME);
-    //lv_ex_slider_2();
-
-    //add_table();
 
     thread.start(check_light);
     thread2.start(check_heathumi);
     thread3.start(water_plants);
 
+
     int choise;
 
     menu:
-    ThisThread::sleep_for(100);
+    ThisThread::sleep_for(300);
     choise = disp.main_menu();    
 
     printf("Choise: %d\n",choise);
 
+
     switch (choise) {
         case 1:
-            disp.light_settings();
+            disp.light_settings(light_a_day, &light_a_day);
+            printf("%f\n", light_a_day);
             goto menu;
         case 2:
-            disp.heat_settings();
+            disp.heat_settings(max_heat_c, max_humi, &max_heat_c, &max_humi);
+            printf("%f\n", max_heat_c);
             goto menu;
         case 3:
             disp.water_settings();
+            goto menu;
+        case 4:
+            disp.overview(temp_celcius, humidity);
             goto menu;
         case -1:
             break;

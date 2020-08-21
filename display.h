@@ -10,19 +10,24 @@ class display
 {
 
 public:
+    float heat_val;
+    float light_val;
+    int hours_light;
+
     void display_init(void);
     void touchpad_init(void);
-    int main_menu();
-    void overview(float celcius, float fahrenheit, float humidity, float light_level);
+    int main_menu(void);
+    void overview(float celcius, float humidity);
+    void update_overview(float heat);
     void water_settings();
-    void light_settings();
-    void heat_settings();
-    void add_table();
+    void light_settings(double curr_hours, double* hours);
+    void heat_settings(float curr_celcius, float curr_humidity, float* celcius, float* humidity);
 
 private:
     static bool touchpad_read(lv_indev_drv_t *indev, lv_indev_data_t *data);
     static void my_disp_flush_cb(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p);
     static void slider_event_cb_1(lv_obj_t * slider, lv_event_t event);
     static void slider_event_cb_2(lv_obj_t * slider, lv_event_t event);
+    static void overview_event_cb_1(lv_obj_t * slider, lv_event_t event);
 
 };
