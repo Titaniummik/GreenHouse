@@ -1,4 +1,4 @@
-#include "mbed.h" //Mbed OS 6
+#include "mbed.h" //Mbed OS 5
 #include <string>
 #include <sstream>
 #include "lvgl/lvgl.h"
@@ -18,9 +18,8 @@ public:
     void touchpad_init(void);
     int main_menu(void);
     void overview(float celcius, float humidity);
-    void update_overview(float heat);
     void water_settings();
-    void light_settings(double curr_hours, double* hours);
+    void light_settings(float curr_start, float curr_hours, float* start, float* hours);
     void heat_settings(float curr_celcius, float curr_humidity, float* celcius, float* humidity);
 
 private:

@@ -2,13 +2,14 @@
 #include "DHT.h"
 #include "display.h"
 #include "lvgl/lvgl.h"
-#include "lv_examples-master/lv_examples.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 
-#define TICKER_TIME 0.001 * LVGL_TICK  
-#define LVGL_TICK 5                             //Time tick value for lvgl in ms (1-10msa)
+#define TICKER_TIME 0.001 * LVGL_TICK
+#define LVGL_TICK 5 //Time tick value for lvgl in ms (1-10msa)
+
+void lv_ticker_func();
 
 DHT s_temp_humi(A0,SEN51035P); // Use the SEN11301P sensor
 AnalogIn s_light(A1);
@@ -19,12 +20,9 @@ Thread thread2;
 Thread thread3;
 Ticker ticker;
 
-
-
-void lv_ticker_func();
-
-bool production = false;
-double light_a_day = 43200000; //12 hours
+bool production = false; //When set to false intervals between checks/activities is less, so it's easier to test.
+float light_a_day = 43200000; //12 hours
+float light_start = 8; //Start lighting from 08.00 aclock
 float max_heat_c = 25;
 float max_humi = 10;
 bool windows_open;
@@ -45,7 +43,7 @@ void water_plants()
             ThisThread::sleep_for(water_time);
         }
         else{
-            ThisThread::sleep_for(60000);
+            ThisThread::sleep_for(60000); //When not running in production we don't want a too long delay
         }
         
         printf("--End watering plants\n");
@@ -131,7 +129,7 @@ void check_heathumi()
             }
         } 
         else {
-            printf("\r\nErr %i \n",err);
+            printf("\r\nErr %i \n",err); //Couldn't find the meaning of the different error codes in the documentation
         }
         ThisThread::sleep_for(5000);
     }
@@ -139,6 +137,7 @@ void check_heathumi()
 
 int main() {
 
+    //Initilize the display and touchpad
     disp.display_init();
     disp.touchpad_init();
 
@@ -148,36 +147,33 @@ int main() {
     thread2.start(check_heathumi);
     thread3.start(water_plants);
 
+    int choice;
 
-    int choise;
+    //Main menu
+    while(true){
 
-    menu:
-    ThisThread::sleep_for(300);
-    choise = disp.main_menu();    
+        ThisThread::sleep_for(300);
+        choice = disp.main_menu();   
+        printf("Choice: %d\n",choice);
 
-    printf("Choise: %d\n",choise);
-
-
-    switch (choise) {
-        case 1:
-            disp.light_settings(light_a_day, &light_a_day);
-            printf("%f\n", light_a_day);
-            goto menu;
-        case 2:
-            disp.heat_settings(max_heat_c, max_humi, &max_heat_c, &max_humi);
-            printf("%f\n", max_heat_c);
-            goto menu;
-        case 3:
-            disp.water_settings();
-            goto menu;
-        case 4:
-            disp.overview(temp_celcius, humidity);
-            goto menu;
-        case -1:
-            break;
+        switch (choice) {
+            case 1:
+                disp.light_settings(light_start, light_a_day, &light_start, &light_a_day);
+                printf("%f\n", light_a_day);
+            case 2:
+                disp.heat_settings(max_heat_c, max_humi, &max_heat_c, &max_humi);
+                printf("%f\n", max_heat_c);
+            case 3:
+                disp.water_settings();
+            case 4:
+                disp.overview(temp_celcius, humidity);
+            case -1:
+                break;
+        }
     }
 }
 
+//Taken from the LVGL website
 void lv_ticker_func(){
     lv_tick_inc(LVGL_TICK); 
     //Call lv_tick_inc(x) every x milliseconds in a Timer or Task (x should be between 1 and 10). 
