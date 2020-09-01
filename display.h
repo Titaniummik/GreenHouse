@@ -1,4 +1,4 @@
-#include "mbed.h" //Mbed OS 5
+#include "mbed.h" //Mbed OS 6
 #include <string>
 #include <sstream>
 #include "lvgl/lvgl.h"
@@ -17,8 +17,9 @@ public:
     void display_init(void);
     void touchpad_init(void);
     int main_menu(void);
+    void select_greenhouse(void);
     void overview(float celcius, float humidity);
-    void water_settings();
+    void water_settings(int curr_intervals, int curr_water_time, int* intervals, int* water_time);
     void light_settings(float curr_start, float curr_hours, float* start, float* hours);
     void heat_settings(float curr_celcius, float curr_humidity, float* celcius, float* humidity);
 
@@ -27,6 +28,6 @@ private:
     static void my_disp_flush_cb(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p);
     static void slider_event_cb_1(lv_obj_t * slider, lv_event_t event);
     static void slider_event_cb_2(lv_obj_t * slider, lv_event_t event);
+    static void roller_event(lv_obj_t * obj, lv_event_t event);
     static void overview_event_cb_1(lv_obj_t * slider, lv_event_t event);
-
 };

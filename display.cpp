@@ -24,6 +24,17 @@ void display::slider_event_cb_2(lv_obj_t * slider, lv_event_t event)
     }
 }
 
+//Not used
+void display::roller_event(lv_obj_t * obj, lv_event_t event)
+{
+    if(event == LV_EVENT_VALUE_CHANGED) {
+        char buf[32];
+        lv_roller_get_selected_str(obj, buf, sizeof(buf));
+        printf("Selected Greenhouse: %s\n", buf);
+    }
+}
+
+
 int display::main_menu(){
 
     //Set halo animation on press
@@ -64,6 +75,12 @@ int display::main_menu(){
     lv_obj_set_style_local_value_str(overview_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_LIST);
     lv_obj_set_size(overview_btn, 50, 50); //set the button size
 
+    //Button to the slection of greenhouse
+    lv_obj_t * select_btn = lv_btn_create(lv_scr_act(), NULL);
+    lv_obj_align(select_btn, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, 80, -5);
+    lv_obj_set_style_local_value_str(select_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_HOME);
+    lv_obj_set_size(select_btn, 50, 50); //set the button size
+
     //Button to exit the application
     lv_obj_t * close_btn = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_set_style_local_value_str(close_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_CLOSE);
@@ -87,12 +104,46 @@ int display::main_menu(){
             lv_obj_clean(lv_scr_act());
             return 4;
         }
+        else if (lv_btn_get_state(select_btn) == LV_BTN_STATE_PRESSED) {
+            lv_obj_clean(lv_scr_act());
+            return 5;
+        }
         else if (lv_btn_get_state(close_btn) == LV_BTN_STATE_PRESSED) {
             lv_obj_clean(lv_scr_act());
             return -1;
         }
     }
 }
+
+/* 
+void select_greenhouse(){
+    lv_obj_t *roller1 = lv_roller_create(lv_scr_act(), NULL);
+    lv_roller_set_options(roller1,
+                        "GreenHouse 1\n"
+                        "GreensHouse 2\n"
+                        "GreenHouse 3\n"
+                        "GreenHouse 4",
+                        LV_ROLLER_MODE_INIFINITE);
+
+    lv_roller_set_visible_row_count(roller1, 4);
+    lv_obj_align(roller1, NULL, LV_ALIGN_CENTER, 0, 0);
+    //lv_obj_set_event_cb(roller1, roller_event);
+
+    //Button to go back to the front menu
+    lv_obj_t * back_btn = lv_btn_create(lv_scr_act(), NULL);
+    lv_obj_set_style_local_value_str(back_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_SYMBOL_BACKSPACE);
+    lv_obj_set_size(back_btn, 50, 50); //set the button size
+
+    while(true){
+        if (lv_btn_get_state(back_btn) == LV_BTN_STATE_PRESSED) {
+            lv_obj_clean(lv_scr_act());
+            break;
+        }
+    }
+    
+}
+*/
+
 
 void display::overview(float celcius, float humidity){
 
@@ -162,8 +213,19 @@ void display::overview(float celcius, float humidity){
 }
 
 
-void display::water_settings(){
+void display::water_settings(int curr_intervals, int curr_water_time, int* intervals, int* water_time){
     
+    char arr_intervals[2];
+    char arr_water_time[4];
+
+    //Converts it to a string
+    string str_intervals = to_string(curr_intervals);
+    string str_water_time = to_string(curr_water_time);
+
+    strcpy(arr_intervals, str_intervals.c_str());
+    strcpy(arr_water_time, str_water_time.c_str());
+
+
     //Create a slider for the watering interval
     lv_obj_t * interval_slider = lv_slider_create(lv_scr_act(), NULL);
     lv_obj_set_event_cb(interval_slider, slider_event_cb_1);
@@ -171,7 +233,7 @@ void display::water_settings(){
     lv_slider_set_range(interval_slider, 0, 100);
 
     slider_label1 = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_text(slider_label1, "10");
+    lv_label_set_text(slider_label1, arr_intervals);
     lv_obj_set_auto_realign(slider_label1, true);
     lv_obj_align(slider_label1, interval_slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
@@ -187,7 +249,7 @@ void display::water_settings(){
     lv_slider_set_range(nintervals_slider, 1, 24);
 
     slider_label2 = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_text(slider_label2, "2");
+    lv_label_set_text(slider_label2, arr_water_time);
     lv_obj_set_auto_realign(slider_label2, true);
     lv_obj_align(slider_label2, nintervals_slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
@@ -203,6 +265,11 @@ void display::water_settings(){
 
     while(true){
         if (lv_btn_get_state(back_btn) == LV_BTN_STATE_PRESSED) {
+
+            *intervals  = lv_slider_get_value(nintervals_slider);
+
+            *water_time = lv_slider_get_value(interval_slider);
+
             lv_obj_clean(lv_scr_act());
             break;
         }
@@ -276,7 +343,6 @@ void display::light_settings(float curr_start, float curr_hours, float* start, f
             break;
         }
     }
-
 }
 
 void display::heat_settings(float curr_celcius, float curr_humidity, float* celcius, float* humidity){
@@ -333,7 +399,6 @@ void display::heat_settings(float curr_celcius, float curr_humidity, float* celc
 
             *celcius = lv_slider_get_value(slider_heat);
             *humidity = lv_slider_get_value(slider_humidity);
-
             lv_obj_clean(lv_scr_act());
             break;
         }

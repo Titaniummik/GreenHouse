@@ -15,24 +15,30 @@ DHT s_temp_humi(A0,SEN51035P); // Use the SEN11301P sensor
 AnalogIn s_light(A1);
 DigitalOut led1(D4);
 display disp;
-Thread thread;
-Thread thread2;
-Thread thread3;
+Thread light_thread;
+Thread heat_thread;
+Thread water_thread;
 Ticker ticker;
 
 bool production = false; //When set to false intervals between checks/activities is less, so it's easier to test.
+
+//For lighting
 float light_a_day = 43200000; //12 hours
 float light_start = 8; //Start lighting from 08.00 aclock
+
+//For heating/cooling system
+float temp_farenheit, temp_celcius, humidity;
 float max_heat_c = 25;
 float max_humi = 10;
 bool windows_open;
 
-float temp_farenheit, temp_celcius, humidity;
+//For Watering system
+int intervals = 2; //Number of invervals in the 24 hour period
+int water_time = 600000; //10 min
+
 
 void water_plants()
 {
-    int intervals = 2; //Number of invervals in the 24 hour period
-    int water_time = 600000; //10 min
     int inverval_ms = 86400000 - (water_time*intervals) / intervals; //Calculate the interval between watering of plants
 
     while(true){
@@ -143,9 +149,9 @@ int main() {
 
     ticker.attach(callback(&lv_ticker_func),TICKER_TIME);
 
-    thread.start(check_light);
-    thread2.start(check_heathumi);
-    thread3.start(water_plants);
+    light_thread.start(check_light);
+    heat_thread.start(check_heathumi);
+    water_thread.start(water_plants);
 
     int choice;
 
@@ -159,16 +165,31 @@ int main() {
         switch (choice) {
             case 1:
                 disp.light_settings(light_start, light_a_day, &light_start, &light_a_day);
-                printf("%f\n", light_a_day);
+                printf("Light a day: %f\n", light_a_day/3600000);
+                printf("Starting hour: %f\n", light_start);
+                break;
             case 2:
                 disp.heat_settings(max_heat_c, max_humi, &max_heat_c, &max_humi);
-                printf("%f\n", max_heat_c);
+                printf("Max Celcius set: %f\n", max_heat_c);
+                printf("Max Humidity set: %f\n", max_humi);
+                break;
             case 3:
-                disp.water_settings();
+                disp.water_settings(intervals, water_time, &intervals, &water_time);
+                printf("Watering intervals: %d\n", intervals);
+                printf("Watering time per interval: %d\n", water_time);
+                break;
             case 4:
                 disp.overview(temp_celcius, humidity);
+                break;
+            case 5:
+                //disp.select_greenhouse();
+                break;
             case -1:
                 break;
+        }
+
+        if(choice == -1){
+            break;
         }
     }
 }
