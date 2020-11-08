@@ -1,6 +1,8 @@
 By Mikkel Rahbek Chritsensen
 # GreenHouse
 
+# This was a one week school project
+
 ### Summery
 >Will control the watering, heating, humidity and lighting in a greenhouse.
 The specific settings each value etc optimal temperature can be set via the touch display
